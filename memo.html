@@ -2,70 +2,59 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>自分専用ノートアプリ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>自分専用ノートアプリ (ver0.7.1)</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@excalidraw/excalidraw/dist/excalidraw.production.min.js"></script>
 
     <style>
-        /* CSSはここにまとめました */
-        body { padding: 20px; font-family: sans-serif; }
+        /* iPadでの操作を安定させるスタイル */
+        body { margin: 0; padding: 10px; font-family: sans-serif; height: 100vh; overflow: hidden; }
+        
         #excalidraw-container {
-            height: 500px;
+            height: 400px;
             width: 100%;
-            border: 1px solid #ccc;
-            touch-action: none; /* iPadでのスクロール防止 */
+            border: 2px solid #007bff;
+            touch-action: none; /* ← ペン操作をブラウザから守る */
+            pointer-events: auto; /* ← 入力を許可する */
             overscroll-behavior: none;
         }
-        #editor { width: 100%; height: 200px; margin-bottom: 10px; }
+        
+        #editor { width: 100%; height: 150px; }
     </style>
 </head>
 <body>
 
-    <h1>自分専用ノートアプリ</h1>
+    <h1>自分専用ノートアプリ <span style="color:#888;">ver0.7.1</span></h1>
     <input type="password" id="token" placeholder="GitHub Tokenを入力">
     <button onclick="saveToken()">設定保存</button>
     
-    <hr>
-    
     <textarea id="editor" placeholder="ここにメモを入力"></textarea>
-    <p>文字数: <span id="count">0</span></p>
-
+    
     <h3>手書きボード</h3>
     <div id="excalidraw-container"></div>
     
     <br>
-    <button onclick="saveNote()" style="padding: 10px 20px; font-size: 16px;">GitHubに保存</button>
+    <button onclick="saveNote()" style="padding: 15px; width: 100%; font-size: 18px;">GitHubに保存</button>
 
     <script>
-        // --- 1. 文字数カウント ---
-        document.getElementById('editor').addEventListener('input', (e) => {
-            document.getElementById('count').innerText = e.target.value.length;
-        });
-
-        // --- 2. Excalidrawの初期化 ---
         const { createElement } = React;
         const { createRoot } = ReactDOM;
         const { Excalidraw } = ExcalidrawLib;
 
-        const App = () => createElement(Excalidraw, {});
+        // Excalidrawを表示
         const container = document.getElementById("excalidraw-container");
-        createRoot(container).render(createElement(App));
+        createRoot(container).render(createElement(Excalidraw, {}));
 
-        // --- 3. トークンの保存 ---
         function saveToken() {
-            const token = document.getElementById('token').value;
-            localStorage.setItem('github_token', token);
+            localStorage.setItem('github_token', document.getElementById('token').value);
             alert('トークンを保存しました');
         }
 
-        // --- 4. 保存処理 ---
         async function saveNote() {
             const token = localStorage.getItem('github_token');
-            if (!token) {
-                alert("先にトークンを設定してください");
-                return;
-            }
+            if (!token) return alert("トークンを設定してください");
 
             const owner = "IBK-1412";
             const repo = "memoweb";
@@ -73,43 +62,22 @@
             
             const content = document.getElementById('editor').value;
             const encodedContent = btoa(unescape(encodeURIComponent(content)));
-            
             const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
 
             try {
                 let sha = null;
-                const getResponse = await fetch(url, {
-                    headers: { Authorization: `token ${token}` }
-                });
-                
-                if (getResponse.ok) {
-                    const data = await getResponse.json();
-                    sha = data.sha;
-                }
+                const getResponse = await fetch(url, { headers: { Authorization: `token ${token}` }});
+                if (getResponse.ok) sha = (await getResponse.json()).sha;
 
                 const response = await fetch(url, {
                     method: 'PUT',
-                    headers: {
-                        Authorization: `token ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: "update note via web app",
-                        content: encodedContent,
-                        sha: sha
-                    })
+                    headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: "update v0.7.1", content: encodedContent, sha: sha })
                 });
 
-                if (response.ok) {
-                    alert("保存成功！");
-                } else {
-                    const error = await response.json();
-                    alert("保存失敗: " + error.message);
-                }
-            } catch (err) {
-                console.error(err);
-                alert("エラーが発生しました");
-            }
+                if (response.ok) alert("保存成功！");
+                else alert("保存失敗: " + (await response.json()).message);
+            } catch (err) { alert("エラーが発生しました"); }
         }
     </script>
 </body>
