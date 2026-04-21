@@ -3,58 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Notebook v0.8</title>
+    <title>Notebook v0.9</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@excalidraw/excalidraw/dist/excalidraw.production.min.js"></script>
+    <script src="https://unpkg.com/@excalidraw/excalidraw@0.17.6/dist/excalidraw.production.min.js"></script>
 
     <style>
         body { margin: 0; padding: 10px; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; }
         #excalidraw-container {
-            flex-grow: 1; /* 画面の空きスペースをすべて使う */
+            flex-grow: 1;
             width: 100%;
-            border: 2px solid #ff0000; /* 境界線を目立たせました */
+            border: 2px solid #007bff;
             touch-action: none;
         }
         #editor { width: 100%; height: 100px; }
-        #error-log { color: red; font-weight: bold; }
+        #error-log { color: red; font-weight: bold; padding: 10px; }
     </style>
 </head>
 <body>
-    <h1>ノートアプリ v0.8 <span id="status"></span></h1>
+    <h1>ノートアプリ v0.9</h1>
     <div id="error-log"></div>
     <textarea id="editor" placeholder="メモを入力"></textarea>
     <div id="excalidraw-container"></div>
     <button onclick="saveNote()" style="padding:15px; margin-top:10px;">GitHubに保存</button>
 
     <script>
-        // エラー表示用
         const log = (msg) => document.getElementById('error-log').innerText = msg;
 
-        try {
-            const { createElement } = React;
-            const { createRoot } = ReactDOM;
-            const { Excalidraw } = ExcalidrawLib;
+        // 読み込み確認と描画
+        function initExcalidraw() {
+            try {
+                // window.ExcalidrawLib を経由してアクセスするように修正
+                const { Excalidraw } = window.ExcalidrawLib;
+                if (!Excalidraw) throw new Error("Excalidrawが見つかりません。ライブラリの読み込みを確認してください。");
 
-            if (!Excalidraw) throw new Error("Excalidrawが読み込めていません");
-
-            const container = document.getElementById("excalidraw-container");
-            const root = createRoot(container);
-            
-            root.render(createElement(Excalidraw, {
-                initialData: { appState: { activeTool: { type: "freedraw" } } },
-                UIOptions: { canvasActions: { loadScene: false, saveAsImage: false } }
-            }));
-            
-            document.getElementById('status').innerText = "(描画完了)";
-        } catch (e) {
-            log("エラー発生: " + e.message);
+                const container = document.getElementById("excalidraw-container");
+                const root = ReactDOM.createRoot(container);
+                
+                root.render(React.createElement(Excalidraw, {
+                    initialData: { appState: { activeTool: { type: "freedraw" } } }
+                }));
+                
+            } catch (e) {
+                log("描画エラー: " + e.message);
+            }
         }
+
+        // ライブラリが読み込まれた後に実行
+        window.onload = initExcalidraw;
 
         // 保存処理
         async function saveNote() {
-            // ... (前回の保存処理と同じ)
-            alert("保存処理を開始します");
+            const token = localStorage.getItem('github_token');
+            if (!token) return alert("トークンを設定してください");
+            // ... (保存処理は以前のままでOKです)
+            alert("保存開始...");
         }
     </script>
 </body>
