@@ -39,6 +39,26 @@
 const excalidrawWrapper = document.getElementById("excalidraw-container");
 render(createElement(App), excalidrawWrapper);
 
+#excalidraw-container {
+    /* これが重要！タッチ操作をブラウザのデフォルト（スクロール）から守る */
+    touch-action: none; 
+    
+    /* ページの端まで引っ張った時のバウンス（跳ね返り）も防ぐ */
+    overscroll-behavior: none;
+    
+    /* 枠線をつけておくと、どこまでが有効範囲か分かりやすい */
+    border: 1px solid #ccc;
+    
+    /* 描画エリアの高さはしっかり確保する */
+    height: 80vh; 
+    width: 100%;
+}
+
+/* ページ全体の余計なスクロールも防止する */
+body {
+    overscroll-behavior: none;
+}
+
         // トークンの保存（LocalStorage使用）
         function saveToken() {
             const token = document.getElementById('token').value;
