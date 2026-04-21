@@ -8,6 +8,14 @@
     <hr>
     
     <textarea id="editor" style="width:100%; height:200px;"></textarea>
+    // 手書きエリア
+　　<div id="app">
+    <textarea id="editor" ...></textarea>
+    
+    <div id="excalidraw-container" style="height: 500px; width: 100%;"></div>
+　　</div>
+
+　　<script src="https://unpkg.com/@excalidraw/excalidraw/dist/excalidraw.production.min.js"></script>
     <p>文字数: <span id="count">0</span></p>
     <button onclick="saveNote()">GitHubに保存</button>
 
@@ -16,6 +24,20 @@
         document.getElementById('editor').addEventListener('input', (e) => {
             document.getElementById('count').innerText = e.target.value.length;
         });
+
+    //手書きエリア
+    const { createElement } = React;
+    const { render } = ReactDOM;
+    const { Excalidraw } = ExcalidrawLib;
+
+    const App = () => {
+    　return createElement(Excalidraw, {
+    // ここでペンの色や保存処理などをカスタマイズできます
+  });
+};
+
+const excalidrawWrapper = document.getElementById("excalidraw-container");
+render(createElement(App), excalidrawWrapper);
 
         // トークンの保存（LocalStorage使用）
         function saveToken() {
