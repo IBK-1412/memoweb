@@ -1,27 +1,55 @@
-<!DOCTYPE html>
-<html lang="ja">
-<body>
-    <h1>自分専用ノートアプリ</h1>
-    <input type="password" id="token" placeholder="GitHub Tokenを入力">
-    <button onclick="saveToken()">設定保存</button>
-    
-    <hr>
-    
-    <textarea id="editor" style="width:100%; height:200px;"></textarea>
-    <p>文字数: <span id="count">0</span></p>
+// --- 保存ボタンを押した時に動く関数 ---
+async function saveNote() {
+    const token = localStorage.getItem('github_token');
+    if (!token) {
+        alert("先にトークンを設定してください");
+        return;
+    }
 
-    <script>
-        // 文字数カウント
-        document.getElementById('editor').addEventListener('input', (e) => {
-            document.getElementById('count').innerText = e.target.value.length;
+    // 1. 設定情報の書き換え箇所
+    const owner = "IBK-1412"; // 例: "yourname"
+    const repo = "memoweb";              // 例: "my-note-app"
+    const path = "notes/memo.md";           // 保存先のファイルパス
+    
+    const content = document.getElementById('editor').value;
+    const encodedContent = btoa(unescape(encodeURIComponent(content))); // 日本語対応のエンコード
+    
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+
+    try {
+        // 2. 既存ファイルのSHAを取得（更新に必須）
+        let sha = null;
+        const getResponse = await fetch(url, {
+            headers: { Authorization: `token ${token}` }
+        });
+        
+        if (getResponse.ok) {
+            const data = await getResponse.json();
+            sha = data.sha; // 既存ファイルがある場合、そのIDを取得
+        }
+
+        // 3. GitHubへ保存（PUTリクエスト）
+        const response = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                Authorization: `token ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: "update note via web app", // コミットメッセージ
+                content: encodedContent,
+                sha: sha // 更新する場合に必要
+            })
         });
 
-        // トークンの保存（LocalStorage使用）
-        function saveToken() {
-            const token = document.getElementById('token').value;
-            localStorage.setItem('github_token', token);
-            alert('トークンを保存しました');
+        if (response.ok) {
+            alert("保存成功！GitHubリポジトリを確認してください。");
+        } else {
+            const error = await response.json();
+            alert("保存失敗: " + error.message);
         }
-    </script>
-</body>
-</html>
+    } catch (err) {
+        console.error(err);
+        alert("エラーが発生しました。コンソールを確認してください。");
+    }
+}
