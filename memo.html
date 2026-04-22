@@ -3,69 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Notebook v0.9</title>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@excalidraw/excalidraw@0.17.6/dist/excalidraw.production.min.js"></script>
-
-    <style>
-        body { margin: 0; padding: 10px; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; }
-        #excalidraw-container {
-            flex-grow: 1;
-            width: 100%;
-            border: 2px solid #007bff;
-            touch-action: none;
-        }
-        #editor { width: 100%; height: 100px; }
-        #error-log { color: red; font-weight: bold; padding: 10px; }
-    </style>
+    <title>Notebook v1.0 (tldraw)</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/tldraw@3.2.0/tldraw.css">
 </head>
-<body>
-    <h1>ノートアプリ v0.91</h1>
-    <div id="error-log"></div>
-    <textarea id="editor" placeholder="メモを入力"></textarea>
-    <div id="excalidraw-container"></div>
-    <button onclick="saveNote()" style="padding:15px; margin-top:10px;">GitHubに保存</button>
+<body style="margin:0; height:100vh; overflow:hidden;">
 
-    <script>
-        const log = (msg) => document.getElementById('error-log').innerText = msg;
+    <div id="tldraw-root" style="width: 100%; height: 100%;"></div>
 
-        // 読み込み確認と描画
-function initExcalidraw() {
-    try {
-        const { Excalidraw } = window.ExcalidrawLib;
-        if (!Excalidraw) throw new Error("Excalidrawが見つかりません。");
+    <script type="module">
+        import { Tldraw, createTLStore, defaultShapeUtils } from 'https://unpkg.com/tldraw@3.2.0/tldraw.js';
 
-        const container = document.getElementById("excalidraw-container");
-        const root = ReactDOM.createRoot(container);
+        // スマート描画（自動補正）を有効にしてtldrawを表示
+        const container = document.getElementById('tldraw-root');
         
-        root.render(React.createElement(Excalidraw, {
-            // 初期設定でフリーハンドツールを指定
-            initialData: { 
-                appState: { 
-                    activeTool: { type: "freedraw" },
-                    // ペンでの描画精度を調整（荒さを抑える）
-                    currentItemRoughness: 0 
-                } 
-            },
-            // 図形補正機能はExcalidrawの標準機能として常にONになっています
-            // 明示的に設定が必要なプロパティはありません
-        }));
-        
-    } catch (e) {
-        log("描画エラー: " + e.message);
-    }
-}
-
-        // ライブラリが読み込まれた後に実行
-        window.onload = initExcalidraw;
-
-        // 保存処理
-        async function saveNote() {
-            const token = localStorage.getItem('github_token');
-            if (!token) return alert("トークンを設定してください");
-            // ... (保存処理は以前のままでOKです)
-            alert("保存開始...");
+        // Reactの代わりにtldraw専用のレンダリングを使用
+        function App() {
+            return Tldraw({
+                persistenceKey: 'my-note-app', // ブラウザ内での保存用ID
+                initialState: 'hand', // 最初から手書きモード
+            });
         }
     </script>
 </body>
