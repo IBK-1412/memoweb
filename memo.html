@@ -3,26 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Notebook v1.0 (tldraw)</title>
-    
+    <title>tldraw Note v1.01</title>
     <link rel="stylesheet" href="https://unpkg.com/tldraw@3.2.0/tldraw.css">
+    <style>
+        body { margin: 0; padding: 10px; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; }
+        #editor { width: 100%; height: 150px; margin-bottom: 10px; }
+        #tldraw-container { flex-grow: 1; border: 2px solid #ccc; position: relative; }
+    </style>
 </head>
-<body style="margin:0; height:100vh; overflow:hidden;">
-
-    <div id="tldraw-root" style="width: 100%; height: 100%;"></div>
+<body>
+    <h1>自分専用ノートアプリ (tldraw版)</h1>
+    <input type="password" id="token" placeholder="GitHub Token">
+    <button onclick="saveToken()">トークン保存</button>
+    
+    <textarea id="editor" placeholder="ここにテキストメモ"></textarea>
+    
+    <div id="tldraw-container"></div>
+    
+    <button onclick="saveAll()" style="padding:15px; margin-top:10px; background:#007bff; color:white; border:none; border-radius:5px;">GitHubに全文保存</button>
 
     <script type="module">
         import { Tldraw, createTLStore, defaultShapeUtils } from 'https://unpkg.com/tldraw@3.2.0/tldraw.js';
-
-        // スマート描画（自動補正）を有効にしてtldrawを表示
-        const container = document.getElementById('tldraw-root');
         
-        // Reactの代わりにtldraw専用のレンダリングを使用
-        function App() {
-            return Tldraw({
-                persistenceKey: 'my-note-app', // ブラウザ内での保存用ID
-                initialState: 'hand', // 最初から手書きモード
-            });
+        // 描画エディタのインスタンスを保持する変数
+        window.editor = null;
+
+        const container = document.getElementById('tldraw-container');
+        
+        // tldrawの初期化 (Reactを使用しないシンプルな呼び出し)
+        const app = new Tldraw({
+            container,
+            onMount: (editor) => {
+                window.editor = editor; // グローバルに保存して保存関数から使う
+            }
+        });
+
+        function saveToken() {
+            localStorage.setItem('github_token', document.getElementById('token').value);
+            alert('トークン保存完了');
+        }
+
+        // 保存関数
+        window.saveAll = async function() {
+            const token = localStorage.getItem('github_token');
+            if (!token) return alert("トークンを設定してください");
+
+            // 1. テキストを取得
+            const textContent = document.getElementById('editor').value;
+            
+            // 2. tldrawの図形データを取得
+            const snapshot = window.editor.store.getSnapshot();
+            
+            // 全データをJSONにしてGitHubへ送る
+            const payload = {
+                text: textContent,
+                drawing: snapshot
+            };
+
+            const encodedContent = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+            
+            // GitHub API呼び出し (パスは notes/data.json に変更推奨)
+            alert("保存処理を開始します（実際の実装はGitHub APIのPUT処理をここに記述）");
+            console.log("保存するデータ:", payload);
         }
     </script>
 </body>
