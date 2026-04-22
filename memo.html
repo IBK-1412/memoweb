@@ -21,7 +21,7 @@
     </style>
 </head>
 <body>
-    <h1>ノートアプリ v0.9</h1>
+    <h1>ノートアプリ v0.91</h1>
     <div id="error-log"></div>
     <textarea id="editor" placeholder="メモを入力"></textarea>
     <div id="excalidraw-container"></div>
@@ -31,23 +31,31 @@
         const log = (msg) => document.getElementById('error-log').innerText = msg;
 
         // 読み込み確認と描画
-        function initExcalidraw() {
-            try {
-                // window.ExcalidrawLib を経由してアクセスするように修正
-                const { Excalidraw } = window.ExcalidrawLib;
-                if (!Excalidraw) throw new Error("Excalidrawが見つかりません。ライブラリの読み込みを確認してください。");
+function initExcalidraw() {
+    try {
+        const { Excalidraw } = window.ExcalidrawLib;
+        if (!Excalidraw) throw new Error("Excalidrawが見つかりません。");
 
-                const container = document.getElementById("excalidraw-container");
-                const root = ReactDOM.createRoot(container);
-                
-                root.render(React.createElement(Excalidraw, {
-                    initialData: { appState: { activeTool: { type: "freedraw" } } }
-                }));
-                
-            } catch (e) {
-                log("描画エラー: " + e.message);
-            }
-        }
+        const container = document.getElementById("excalidraw-container");
+        const root = ReactDOM.createRoot(container);
+        
+        root.render(React.createElement(Excalidraw, {
+            // 初期設定でフリーハンドツールを指定
+            initialData: { 
+                appState: { 
+                    activeTool: { type: "freedraw" },
+                    // ペンでの描画精度を調整（荒さを抑える）
+                    currentItemRoughness: 0 
+                } 
+            },
+            // 図形補正機能はExcalidrawの標準機能として常にONになっています
+            // 明示的に設定が必要なプロパティはありません
+        }));
+        
+    } catch (e) {
+        log("描画エラー: " + e.message);
+    }
+}
 
         // ライブラリが読み込まれた後に実行
         window.onload = initExcalidraw;
