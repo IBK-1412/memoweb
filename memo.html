@@ -2,70 +2,24 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>tldraw Note v1.01</title>
-    <link rel="stylesheet" href="https://unpkg.com/tldraw@3.2.0/tldraw.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tldraw Minimal Test v1.02</title>
+    <link rel="stylesheet" href="https://unpkg.com/tldraw@3.2.0/tldraw.css"/>
     <style>
-        body { margin: 0; padding: 10px; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; }
-        #editor { width: 100%; height: 150px; margin-bottom: 10px; }
-        #tldraw-container { flex-grow: 1; border: 2px solid #ccc; position: relative; }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+        #root { width: 100vw; height: 100vh; }
     </style>
 </head>
 <body>
-    <h1>自分専用ノートアプリ (tldraw版)</h1>
-    <input type="password" id="token" placeholder="GitHub Token">
-    <button onclick="saveToken()">トークン保存</button>
-    
-    <textarea id="editor" placeholder="ここにテキストメモ"></textarea>
-    
-    <div id="tldraw-container"></div>
-    
-    <button onclick="saveAll()" style="padding:15px; margin-top:10px; background:#007bff; color:white; border:none; border-radius:5px;">GitHubに全文保存</button>
+    <div id="root"></div>
 
     <script type="module">
-        import { Tldraw, createTLStore, defaultShapeUtils } from 'https://unpkg.com/tldraw@3.2.0/tldraw.js';
-        
-        // 描画エディタのインスタンスを保持する変数
-        window.editor = null;
+        import React from 'https://esm.sh/react@18.2.0';
+        import { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
+        import { Tldraw } from 'https://esm.sh/tldraw@3.2.0';
 
-        const container = document.getElementById('tldraw-container');
-        
-        // tldrawの初期化 (Reactを使用しないシンプルな呼び出し)
-        const app = new Tldraw({
-            container,
-            onMount: (editor) => {
-                window.editor = editor; // グローバルに保存して保存関数から使う
-            }
-        });
-
-        function saveToken() {
-            localStorage.setItem('github_token', document.getElementById('token').value);
-            alert('トークン保存完了');
-        }
-
-        // 保存関数
-        window.saveAll = async function() {
-            const token = localStorage.getItem('github_token');
-            if (!token) return alert("トークンを設定してください");
-
-            // 1. テキストを取得
-            const textContent = document.getElementById('editor').value;
-            
-            // 2. tldrawの図形データを取得
-            const snapshot = window.editor.store.getSnapshot();
-            
-            // 全データをJSONにしてGitHubへ送る
-            const payload = {
-                text: textContent,
-                drawing: snapshot
-            };
-
-            const encodedContent = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-            
-            // GitHub API呼び出し (パスは notes/data.json に変更推奨)
-            alert("保存処理を開始します（実際の実装はGitHub APIのPUT処理をここに記述）");
-            console.log("保存するデータ:", payload);
-        }
+        const root = createRoot(document.getElementById('root'));
+        root.render(React.createElement(Tldraw));
     </script>
 </body>
 </html>
